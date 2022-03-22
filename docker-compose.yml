@@ -1,0 +1,57 @@
+version: '3.9'
+
+networks:
+  phiona_network:
+    external:
+      name: phiona_network
+
+services:
+  orders:
+    container_name: corders
+    image: orders
+    build:
+      context: ./orders
+    ports:
+      - "80:80"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@phiona_orders_database:5432/phiona_orders_db
+    depends_on:
+      - phiona_orders_database
+      - users
+    networks:
+      - phiona_network
+
+  phiona_orders_database:
+    container_name: phiona_orders_database
+    image: postgres:12
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=phiona_orders_db
+      - POSTGRES_USERS_DB=phiona_users_db
+    volumes:
+      - phiona_orders_db:/var/lib/postgresql/data
+    networks:
+      - phiona_network
+
+  users:
+    container_name: cusers
+    image: users
+    build:
+      context: ./users
+    ports:
+    - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@phiona_orders_database:5432/phiona_users_db
+    depends_on:
+      - phiona_orders_database
+    networks:
+      - phiona_network
+
+  
+
+
+volumes:
+  phiona_orders_db: {}
