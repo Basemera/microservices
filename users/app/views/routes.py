@@ -1,8 +1,9 @@
 from time import sleep
-from flask import jsonify, request
+from flask import jsonify, request, make_response
 from app import db
 from ..models import User
 from . import users_api_blueprint
+from .clients.orders_client import get_orders
 
 is_maintenance_mode = False
 
@@ -28,6 +29,19 @@ def get_user(id):
   user = User.query.get(id)
   del user.__dict__['_sa_instance_state']
   return jsonify(user.__dict__)
+
+@users_api_blueprint.route('/users/<id>/orders', methods=['GET'])
+def get_user_orders(id):
+  sleep(10)
+  # get orders
+  try:
+    orders = get_orders(id)
+  except Exception as exc:
+    return make_response({
+      'error': "Bad request",
+      'exception': str(exc)
+    }, 500)
+  return make_response(orders)
 
 @users_api_blueprint.route('/users', methods=['GET'])
 def get_users():
